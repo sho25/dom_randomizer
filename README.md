@@ -1,0 +1,2 @@
+# dominion_randomizer
+身内用のドミニオンランダマイザー予定
