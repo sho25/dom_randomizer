@@ -5,10 +5,19 @@
 <div class="container">
     <div class="form-check">
         <form action="/" method="POST">
+        <h2>拡張パック選択</h2>
         {% for extension in extensions %}
             <div class="col-">
                 <input class="form-check-input" type="checkbox" name="extensions" id="{{extension}}" value="{{extension}}" checked>
-                <label class="form-check-label" for="{{extension}}">{{extension}}</label>
+                <label class="form-check-label" for="{{extension}}">{{extension|e}}</label>
+                <br>
+            </div>
+        {% endfor %}
+        <h2>オプション</h2>
+        {% for option in options %}
+            <div class="col-">
+                <input class="form-check-input" type="checkbox" name="options" id="{{option.tag}}" value="{{option.tag}}" checked>
+                <label class="form-check-label" for="{{option.tag}}">{{option.text|e}}</label>
                 <br>
             </div>
         {% endfor %}
@@ -17,10 +26,24 @@
     </div>
 </div>
 {% if selected %}
-<div class="container">
-    {% for card in randomizer %}
-    <div class="col-">{{card}}</div>
-    {% endfor %}
-</div>
+<table class="table">
+        <tr>
+        <th>#</th>
+        <th>名前</th>
+        <th>読み</th>
+        <th>コスト</th>
+        <th>拡張</th>
+        </tr>
+        
+        {% for card in randomizer %}
+        <tr>
+            <td>{{loop.index0}}</td>
+            <td>{{card.name_j}}</td>
+            <td>{{card.kana}}</td>
+            <td>{{card.cost}}</td>
+            <td>{{card.extension}}</td> 
+        </tr>
+        {% endfor %}
+</table>
 {% endif %}
 {% endblock %}
