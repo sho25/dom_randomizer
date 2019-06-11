@@ -1,9 +1,34 @@
 {% extends "bootstrap/base.html" %}
 
+{% block title %}Dominion Randomizer{% endblock %}
+
 {% block content %}
 <div class="container">
     <h1>Dominion Randomizer</h1>
 </div>
+{% if selected %}
+<div class="container">
+    <table class="table table-hover">
+        <tr>
+        <th>#</th>
+        <th>名前</th>
+        <th>読み</th>
+        <th>コスト</th>
+        <th>拡張</th>
+        </tr>
+        
+        {% for card in randomizer %}
+        <tr>
+            <td>{{loop.index}}</td>
+            <td>{{card.name_j}}</td>
+            <td>{{card.kana}}</td>
+            <td>{{card.cost}}</td>
+            <td>{{card.extension}}</td> 
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
 <div class="container">
     <div class="form-check">
         <form action="/" method="POST">
@@ -11,7 +36,18 @@
         <div class="row">
             {% for extension in extensions %}
             <div class="col-xs-6 col-sm-6 col-md-4 col-lg-3">
-                <input class="form-check-input" type="checkbox" name="extensions" id="{{extension}}" value="{{extension}}">
+                {% set is_check = {'check': False} %}
+                {% for check in checked %}
+                    {% if check == extension %}
+                        {% if is_check.update({'check': True}) %}{% endif %}
+                    {% else %}
+                    {% endif %}
+                {% endfor %}
+                {% if is_check.check %}
+                    <input class="form-check-input" type="checkbox" name="extensions" id="{{extension}}" value="{{extension}}" checked>
+                {% else %}
+                    <input class="form-check-input" type="checkbox" name="extensions" id="{{extension}}" value="{{extension}}">
+                {% endif %}
                 <label class="form-check-label" for="{{extension}}">{{extension|e}}</label>
                 <br>
             </div>
@@ -43,29 +79,6 @@
         </form>
     </div>
 </div>
-{% if selected %}
-<div class="container">
-    <table class="table table-hober">
-        <tr>
-        <th>#</th>
-        <th>名前</th>
-        <th>読み</th>
-        <th>コスト</th>
-        <th>拡張</th>
-        </tr>
-        
-        {% for card in randomizer %}
-        <tr>
-            <td>{{loop.index}}</td>
-            <td>{{card.name_j}}</td>
-            <td>{{card.kana}}</td>
-            <td>{{card.cost}}</td>
-            <td>{{card.extension}}</td> 
-        </tr>
-        {% endfor %}
-    </table>
-</div>
-{% endif %}
 {% if error %}
 <div class="container">
     <h2>{{error}}</h2>
