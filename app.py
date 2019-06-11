@@ -28,20 +28,6 @@ class CardData(db.Model):
     card_class = db.Column(db.String(10))
     card_type = db.Column(db.String(20))
 
-    def __init__(self, card_id, name_j, name_e, kana, extension, cost, potion, neg_cost, card_class, card_type):
-        self.card_id = card_id
-        self.name_j = name_j
-        self.name_e = name_e
-        self.kana = kana
-        self.extension = extension
-        self.cost = cost
-        self.potion = potion
-        self.neg_cost = neg_cost
-        self.card_class = card_class
-        self.card_type = card_type
-    def debug(self):
-        print("{},{},{}".format(self.name_j, self.cost, self.extension))
-
 class Card():
     def __init__(self, name_j, kana, cost, extension, card_type):
         self.name_j = name_j
@@ -72,15 +58,13 @@ def index():
 
 @app.route('/', methods=['POST'])
 def result():
-    extensions = request.form.getlist("extensions")
-    options = request.form.getlist("options")
-    print(extensions)
-    print(options)
+    post_extensions = request.form.getlist("extensions")
+    post_options = request.form.getlist("options")
 
     # 選択した拡張のカードをDBから所得
     ext_cards = [] # 均等配分用
     all_cards = [] # 全ランダム用
-    for ext in extensions:
+    for ext in post_extensions:
         query_result = db.session.query(CardData).filter(CardData.extension == ext)
         cards = []
         for card in query_result:
@@ -89,20 +73,36 @@ def result():
         all_cards.extend(cards)
         ext_cards.append(cards)
 
+    # 選択なしj
+    if len(post_extensions) == 0:
+        return render_template('index.html', extensions=_extensions.extensions, options=_options.options, error="select at least one extension")
+
     # ランダマイズ部分
     randomizer = []
-    if 'equal' in options:
-        ave_num = math.floor(10 / len(extensions)) 
-        for i in range(len(extensions)):
-            if i == 0:
-                randomizer.extend(random_gen(ext_cards[i], ave_num + 1))
-            else:
-                randomizer.extend(random_gen(ext_cards[i], ave_num))
+    if 'equal' in post_options:
+        if len(post_extensions) > 10:
+            return render_template('index.html', extensions=_extensions.extensions, options=_options.options, error="too many extensions selected", checked=post_extensions)
+        
+        # とりあえず均等に枚数を選ぶ
+        ave_num = math.floor(10 / len(post_extensions)) 
+        for i in range(len(post_extensions)):
+            randomizer.extend(random_gen(ext_cards[i], ave_num))
+        remain = 10 - ave_num*len(post_extensions)
+        # 10枚になるまで選ぶ
+        # TODO:
+        # ランダムでやるとすでに選んだカードがでるので選んだカードは選択肢から外した方がいい
+        while remain > 0:
+            rand = random.randrange(len(post_extensions))
+            gen = random_gen(ext_cards[rand], 1)
+            if gen in randomizer:
+                continue
+            randomizer.extend(gen)
+            remain -= 1
     else:
         randomizer.extend(random_gen(all_cards, 10))
-    print(randomizer)
-        
-    return render_template('index.html', extensions=_extensions.extensions, randomizer=randomizer, selected="True", options=_options.options)
+
+    randomizer = sorted(randomizer, key=lambda x: x.cost)
+    return render_template('index.html', extensions=_extensions.extensions, randomizer=randomizer, selected="True", options=_options.options, checked=post_extensions)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
